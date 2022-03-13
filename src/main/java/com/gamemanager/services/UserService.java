@@ -2,7 +2,6 @@ package com.gamemanager.services;
 
 import com.gamemanager.beens.Answer;
 import com.gamemanager.beens.User;
-import com.gamemanager.beens.UserGame;
 
 import java.util.List;
 

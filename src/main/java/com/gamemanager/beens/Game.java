@@ -7,8 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Game {
-    // https://opentdb.com/api.php?amount=10&category=16&difficulty=easy&type=boolean
-
     static AtomicLong gameCount = new AtomicLong();
     long gameId;
     Integer category;

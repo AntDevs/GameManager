@@ -1,7 +1,5 @@
 package com.gamemanager.beens;
 
-import java.util.Optional;
-import java.util.Properties;
 import java.util.Vector;
 
 public class User {

@@ -17,9 +17,9 @@ import java.util.Hashtable;
 
 @RestController
 @RequestMapping(value = "/games")
-public class GameControllers {
+public class GameController {
 
-	Logger logger = LoggerFactory.getLogger(GameControllers.class);
+	Logger logger = LoggerFactory.getLogger(GameController.class);
 
 	@Autowired
 	GameManagerService gameManagerService;

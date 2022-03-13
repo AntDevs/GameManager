@@ -1,7 +1,6 @@
 package com.gamemanager.services;
 
 import com.gamemanager.beens.Answer;
-import com.gamemanager.beens.Question;
 
 import java.util.Hashtable;
 

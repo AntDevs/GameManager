@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ApplicationContext appCntext;
 
-    public User getUser(String userName) throws Exception{
+    public synchronized User getUser(String userName) throws Exception{
         List<User> users =  getUsers();
 
         Optional<User> userOp = users.parallelStream().filter(u->u.getUserName().equals(userName)).findFirst();
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    public UserGame getUserGame(User user,long gameId) {
+    public synchronized UserGame getUserGame(User user,long gameId) {
         Optional<UserGame> userGameOp =  user.getUserGames().
                 parallelStream().filter(g->g.getGame().getGameId() == gameId).findFirst();
 

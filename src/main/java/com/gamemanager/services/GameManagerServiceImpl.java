@@ -1,22 +1,13 @@
 package com.gamemanager.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamemanager.beens.*;
-import com.gamemanager.config.LoadDatabaseImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -64,18 +55,22 @@ public class GameManagerServiceImpl implements GameManagerService {
         Hashtable<String, Object> ret = new Hashtable<String, Object>();
         ret.put("GameId", gameId);
         try {
-            List<UserGame> userGameList =
+            List<Optional<UserGame>> userGameList =
                     userService.getUsers().parallelStream().map(u->
-                            u.getUserGames().parallelStream().filter(ug->ug.getGame().getGameId() == gameId).findFirst().get()
+                            //u.getUserGames().parallelStream().filter(ug->ug.getGame().getGameId() == gameId).findFirst().get()
+                            u.getUserGames().parallelStream().filter(ug->ug.getGame().getGameId() == gameId).findFirst()
                         ).collect(Collectors.toList());
 
-            if ( userGameList.size() == 0 ) {
+            if ( userGameList.size() == 0 || userGameList.get(0).isEmpty() ) {
                 loger.info("No player has played this game:{}", gameId );
                 ret.put("MSG", "No player has played this game" );
                 return ret;
             }
 
-            UserGame userGameMax = userGameList.parallelStream().max((a, b)->a.calcPoints().compareTo(b.calcPoints())).get();
+            Optional<UserGame> userGameMaxOp = userGameList.parallelStream()
+                    .max((a, b)->a.get().calcPoints().compareTo(b.get().calcPoints())).get();
+
+            UserGame userGameMax = userGameMaxOp.get();
 
             userGameMax.calcPoints();
 

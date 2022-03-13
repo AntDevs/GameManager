@@ -1,9 +1,7 @@
 package com.gamemanager.beens;
 
-
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class UserGame {
     String userName;
