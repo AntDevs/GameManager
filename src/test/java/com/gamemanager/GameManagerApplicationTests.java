@@ -24,22 +24,24 @@ import java.util.stream.Collectors;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class GameManagerApplicationTests {
 
 
 	@Autowired
 	private MockMvc mockMvc;
 
-	@BeforeEach
-	void setUp(WebApplicationContext wac) throws Exception {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-				.alwaysExpect(status().isOk())
-				.alwaysDo(print())
-				.build();
-	}
+
+//	@BeforeEach
+//	void setUp(WebApplicationContext wac) throws Exception {
+//		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
+//				.alwaysExpect(status().isOk())
+//				.alwaysDo(print())
+//				.build();
+//	}
 
 	List<String> initAnswerQuestionTestList(int testCount){
-		Vector<String> ret = new Vector();
+		Vector<String> ret = new Vector(testCount + 2);
 		String restMap = "/games/AnswerQuestion/%s/%d/%d/%d";
 		Random rand = new Random();
 		for(int i = 0; i < testCount; i++ ){
@@ -49,13 +51,20 @@ class GameManagerApplicationTests {
 													rand.nextInt(4) ,
 													rand.nextInt(10) ));
 		}
+		for(int i = 0; i < 2; i++ ){
+			ret.add(String.format(restMap, "aaa" + rand.nextInt(2) ,
+					rand.nextInt(4) ,
+					rand.nextInt(4),
+					0 ,
+					rand.nextInt(10) ));
+		}
 		return ret;
 	}
 
 	@Test
 	@DisplayName("Init server Test")
 	@Order(1)
-	void InitServer() throws Exception {
+	void initServer() {
 
 		try {
 			this.mockMvc.perform(get("/games/AnswerQuestion/aaa/0/1/1"))
@@ -74,7 +83,8 @@ class GameManagerApplicationTests {
 
 	@Test
 	@DisplayName("AnswerQuestion Test")
-	void AnswerQuestion() throws Exception {
+	@Order(2)
+	void answerQuestion() {
 
 		List<String>  answerQuestionTestList = initAnswerQuestionTestList(20);
 
@@ -96,11 +106,11 @@ class GameManagerApplicationTests {
 	}
 
 	List<String> initGetLeaderboardTestList(int testCount){
-		Vector<String> ret = new Vector();
+		Vector<String> ret = new Vector<>(testCount);
 		String restMap = "/games/GetLeaderboard/%d";
 		Random rand = new Random();
 		for(int i = 0; i < testCount; i++ ){
-			ret.add(String.format(restMap, rand.nextInt(10)));
+			ret.add(String.format(restMap, rand.nextInt(2)));
 		}
 		return ret;
 	}
@@ -108,11 +118,12 @@ class GameManagerApplicationTests {
 
 	@Test
 	@DisplayName("GetLeaderboard Test")
-	void GetLeaderboard() throws Exception {
+	@Order(3)
+	void getLeaderboard(){
 
-		List<String>  answerQuestionTestList = initGetLeaderboardTestList(2);
+		List<String>  getLeaderboardTestList = initGetLeaderboardTestList(2);
 
-		List<String> collect = answerQuestionTestList.parallelStream().map(a -> {
+		List<String> collect = getLeaderboardTestList.parallelStream().map(a -> {
 			try {
 				this.mockMvc.perform(get(a))
 						.andExpect(status().isOk())
@@ -125,5 +136,60 @@ class GameManagerApplicationTests {
 		}).collect(Collectors.toList());
 
 	}
+
+	@Test
+	@DisplayName("Check AnswerQuestion Test")
+	@Order(5)
+	void checkAnswerQuestion() {
+
+		String[]  answerQuestionTestList = {
+								"/games/AnswerQuestion/bbb/1/0/1",
+								"/games/AnswerQuestion/bbb/1/0/2",
+								"/games/AnswerQuestion/bbb/1/0/3",
+								"/games/AnswerQuestion/ccc/2/0/1",
+								"/games/AnswerQuestion/ccc/2/0/2",
+								"/games/AnswerQuestion/ccc/2/0/3"
+								};
+		List<String> collect = List.of(answerQuestionTestList).parallelStream().map(a -> {
+			try {
+				this.mockMvc.perform(get(a))
+						.andExpect(status().isOk())
+						.andExpect(content().string(containsString("GameEarnedPoints")))
+						.andDo(print());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return "";
+		}).collect(Collectors.toList());
+
+	}
+
+	@Test
+	@DisplayName("Check GetLeaderboard Test")
+	@Order(6)
+	void checkGetLeaderboard(){
+
+		String[]  getLeaderboardTestList = {
+				"/games/GetLeaderboard/1",
+				"/games/GetLeaderboard/2"
+		};
+
+		List<String> collect2 = List.of(getLeaderboardTestList).parallelStream().map(a -> {
+			try {
+				this.mockMvc.perform(get(a))
+						.andExpect(status().isOk())
+						.andExpect(content().string(
+								anyOf(containsString("User Name\":\"ccc\""),
+										containsString("User Name\":\"bbb\""),
+										containsString("userName")
+								)))
+						.andDo(print());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return "";
+		}).collect(Collectors.toList());
+	}
+
 
 }

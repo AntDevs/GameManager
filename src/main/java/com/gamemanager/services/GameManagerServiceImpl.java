@@ -27,7 +27,7 @@ public class GameManagerServiceImpl implements GameManagerService {
     @Override
     public Hashtable<String, Object> AnswerQuestion(Answer answer, String userName) {
 
-        Hashtable<String, Object> ret = new  Hashtable<String, Object>();
+        Hashtable<String, Object> ret = new Hashtable<>();
 
         try {
             Integer earnedPoints =  userService.addGameAnswer(answer, userName);
@@ -52,32 +52,30 @@ public class GameManagerServiceImpl implements GameManagerService {
     @Override
     public Hashtable<String, Object> getLeaderboard(Long gameId) {
 
-        Hashtable<String, Object> ret = new Hashtable<String, Object>();
+        Hashtable<String, Object> ret = new Hashtable<>();
         ret.put("GameId", gameId);
         try {
-            List<Optional<UserGame>> userGameList =
-                    userService.getUsers().parallelStream().map(u->
-                            //u.getUserGames().parallelStream().filter(ug->ug.getGame().getGameId() == gameId).findFirst().get()
-                            u.getUserGames().parallelStream().filter(ug->ug.getGame().getGameId() == gameId).findFirst()
-                        ).collect(Collectors.toList());
 
-            if ( userGameList.size() == 0 || userGameList.get(0).isEmpty() ) {
+            List<UserGame> userGameList =
+                    userService.getUsers().parallelStream().flatMap(u->u.getUserGames().stream())
+                            .filter(ug->ug.getGame().getGameId() == gameId).collect(Collectors.toList());
+
+            if ( userGameList.size() == 0 ) {
                 loger.info("No player has played this game:{}", gameId );
                 ret.put("MSG", "No player has played this game" );
                 return ret;
             }
 
             Optional<UserGame> userGameMaxOp = userGameList.parallelStream()
-                    .max((a, b)->a.get().calcPoints().compareTo(b.get().calcPoints())).get();
-
-            UserGame userGameMax = userGameMaxOp.get();
-
-            userGameMax.calcPoints();
-
-            ret.put("Max Points", userGameMax.calcPoints());
-            loger.info("User {}} has the highest score of {} in game:{}", userGameMax.getUserName(),
-                                                                        userGameMax.calcPoints(), gameId);
-            ret.put("User Name", userGameMax.getUserName());
+                                    .max((a, b)->a.calcPoints().compareTo(b.calcPoints()));
+            UserGame userGameMax;
+            if ( userGameMaxOp.isPresent() ){
+                userGameMax = userGameMaxOp.get();
+                ret.put("Max Points", userGameMax.calcPoints());
+                loger.info("User {}} has the highest score of {} in game:{}", userGameMax.getUserName(),
+                                                                            userGameMax.calcPoints(), gameId);
+                ret.put("User Name", userGameMax.getUserName());
+            }
 
         } catch (Exception e) {
             ret.put(ERROR_FLD, e.getMessage());

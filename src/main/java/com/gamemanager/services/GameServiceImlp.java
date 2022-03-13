@@ -19,12 +19,12 @@ public class GameServiceImlp implements GameService {
     @Autowired
     private ApplicationContext appCntext;
 
-    public List<Game> getGames() throws Exception{
-        List<Game> games =  (List<Game>)appCntext.getBean("Games");
+    public List<Game> getGames(){
+        List<Game> games = (List<Game>) appCntext.getBean("Games");
         return games;
     }
 
-    public Game getGame(Long gameId) throws Exception{
+    public synchronized Game getGame(Long gameId) throws Exception{
         Optional<Game> gameOp =  getGames().parallelStream().filter(g-> g.getGameId() == gameId ).findFirst() ;
         if ( gameOp.isEmpty() ){
             loger.error(" Game not found gameId:{} ", gameId);
@@ -37,7 +37,7 @@ public class GameServiceImlp implements GameService {
 
         Game game = getGame(answer.getGameId());
         Optional<Question> questionOp =  game.getQuestionList().
-                parallelStream().filter(q->q.getQuestionId() == answer.getQuestionId() ).findFirst();
+                parallelStream().filter(q->q.getQuestionId().equals(answer.getQuestionId()) ).findFirst();
 
         if ( questionOp.isEmpty() ){
             loger.error(" Question not found gameId:{}, QuestionId:{} ", answer.getGameId(), answer.getQuestionId());
